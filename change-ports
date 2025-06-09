@@ -1,0 +1,8 @@
+#!/bin/bash
+"""
+Quick port configuration script for Lapis Spider
+Usage: ./change-ports [preset]
+"""
+
+cd "$(dirname "$0")"
+python3 scripts/change_ports.py "$@"

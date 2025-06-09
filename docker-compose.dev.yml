@@ -1,0 +1,74 @@
+version: '3.9'
+
+# Development-specific overrides
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: dev-password
+
+  mongodb:
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_PASSWORD: dev-password
+
+  redis:
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./logs:/app/logs
+    environment:
+      - APP_ENV=development
+      - APP_DEBUG=true
+
+  # Development-only services
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: lapis_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@lapis.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - lapis_network
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: lapis_mongo_express
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: lapis
+      ME_CONFIG_MONGODB_ADMINPASSWORD: dev-password
+      ME_CONFIG_MONGODB_URL: mongodb://lapis:dev-password@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongodb
+    networks:
+      - lapis_network
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: lapis_redis_commander
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8082:8081"
+    depends_on:
+      - redis
+    networks:
+      - lapis_network
