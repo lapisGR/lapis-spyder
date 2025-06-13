@@ -5,6 +5,7 @@ import asyncio
 import subprocess
 from pathlib import Path
 from typing import Dict, List, Optional, Any
+from pathlib import Path
 from dataclasses import dataclass, field, asdict
 from concurrent.futures import ThreadPoolExecutor
 
@@ -99,7 +100,7 @@ class SpiderWrapper:
         self.spider_path = self._find_spider_executable()
         self.executor = ThreadPoolExecutor(max_workers=4)
         
-    def _find_spider_executable(self) -> Path:
+    def _find_spider_executable(self) -> Optional[Path]:
         """Find spider executable in the project."""
         # Use Python wrapper for now
         python_wrapper = Path(__file__).parent / "spider_cli_wrapper.py"
@@ -109,10 +110,10 @@ class SpiderWrapper:
         
         # Look for spider executable in multiple locations
         possible_paths = [
-            Path("spider/target/release/spider_cli"),
-            Path("spider/target/debug/spider_cli"),
-            Path("/usr/local/bin/spider_cli"),
-            Path.home() / ".cargo/bin/spider_cli",
+            Path("spider/target/release/spider"),
+            Path("spider/target/debug/spider"),
+            Path("/usr/local/bin/spider"),
+            Path.home() / ".cargo/bin/spider",
         ]
         
         for path in possible_paths:
@@ -137,7 +138,8 @@ class SpiderWrapper:
             except subprocess.CalledProcessError as e:
                 logger.error(f"Failed to build spider: {e}")
         
-        raise RuntimeError("Spider executable not found. Please build the spider project first.")
+        logger.warning("Spider executable not found. Will use fallback implementation.")
+        return None
     
     @measure_performance("spider_crawl_url")
     async def crawl_url(self, url: str, config: Optional[SpiderConfig] = None) -> List[CrawlResult]:
@@ -174,14 +176,38 @@ class SpiderWrapper:
     @measure_performance("spider_subprocess")
     def _run_spider_subprocess(self, config: SpiderConfig) -> List[CrawlResult]:
         """Run spider in subprocess and parse results."""
+        # If no spider path, use fallback implementation
+        if self.spider_path is None:
+            return self._fallback_crawl(config)
+        
         # Check if using Python wrapper
         if str(self.spider_path).endswith('.py'):
-            args = ["python3", str(self.spider_path)] + config.to_spider_args()
+            # Use the same Python interpreter as the current process
+            import sys
+            args = [sys.executable, str(self.spider_path)] + config.to_spider_args()
         else:
-            args = [str(self.spider_path)] + config.to_spider_args()
-            # Add JSON output format
-            args.extend(["--output-format", "json"])
+            # Spider CLI uses different argument format
+            args = [str(self.spider_path), "--url", config.url, "scrape", "--output-html"]
+            
+            # Add common spider arguments
+            if config.max_pages:
+                args.extend(["--limit", str(config.max_pages)])
+            if config.max_depth:
+                args.extend(["--depth", str(config.max_depth)])
+            if not config.respect_robots_txt:
+                args.append("--respect-robots-txt")
+            if config.user_agent:
+                args.extend(["--agent", config.user_agent])
+            if config.crawl_delay:
+                args.extend(["--delay", str(int(config.crawl_delay * 1000))])
+            
+            # Filter out None values
+            args = [arg for arg in args if arg is not None]
         
+        # Ensure all args are strings and not None
+        args = [str(arg) for arg in args if arg is not None]
+        logger.debug(f"Spider path: {self.spider_path}, type: {type(self.spider_path)}")
+        logger.debug(f"Config args: {config.to_spider_args()}")
         logger.debug(f"Running spider with args: {' '.join(args)}")
         
         try:
@@ -198,17 +224,39 @@ class SpiderWrapper:
                 logger.error(f"stderr: {result.stderr}")
                 raise RuntimeError(f"Spider failed: {result.stderr}")
             
-            # Parse JSON output
+            # Parse output based on spider path type
             crawl_results = []
-            for line in result.stdout.strip().split('\n'):
-                if not line:
-                    continue
-                try:
-                    data = json.loads(line)
-                    crawl_results.append(CrawlResult.from_spider_output(data))
-                except json.JSONDecodeError as e:
-                    logger.warning(f"Failed to parse spider output line: {e}")
-                    continue
+            if str(self.spider_path).endswith('.py'):
+                # Python wrapper outputs JSON
+                for line in result.stdout.strip().split('\n'):
+                    if not line:
+                        continue
+                    try:
+                        data = json.loads(line)
+                        crawl_results.append(CrawlResult.from_spider_output(data))
+                    except json.JSONDecodeError as e:
+                        logger.warning(f"Failed to parse spider output line: {e}")
+                        continue
+            else:
+                # Spider CLI outputs JSONL with different format
+                for line in result.stdout.strip().split('\n'):
+                    if not line:
+                        continue
+                    try:
+                        data = json.loads(line)
+                        # Spider CLI format: {"url": "...", "html": "..."}
+                        crawl_result = CrawlResult(
+                            url=data.get("url", ""),
+                            status_code=200 if data.get("html") else 0,
+                            content=data.get("html", ""),
+                            headers={},
+                            response_time=0.0,
+                            size_bytes=len(data.get("html", "").encode("utf-8"))
+                        )
+                        crawl_results.append(crawl_result)
+                    except json.JSONDecodeError as e:
+                        logger.warning(f"Failed to parse spider output line: {e}")
+                        continue
             
             return crawl_results
             
@@ -218,6 +266,94 @@ class SpiderWrapper:
         except Exception as e:
             logger.error(f"Spider subprocess error: {e}")
             raise
+    
+    def _fallback_crawl(self, config: SpiderConfig) -> List[CrawlResult]:
+        """Fallback crawl implementation using requests."""
+        import requests
+        from urllib.parse import urljoin, urlparse
+        from bs4 import BeautifulSoup
+        
+        logger.info(f"Using fallback crawler for {config.url}")
+        results = []
+        visited = set()
+        to_visit = [(config.url, 0)]  # (url, depth)
+        
+        headers = {
+            'User-Agent': config.user_agent,
+            **config.headers
+        }
+        
+        while to_visit and len(results) < config.max_pages:
+            current_url, depth = to_visit.pop(0)
+            
+            if current_url in visited or depth > config.max_depth:
+                continue
+                
+            visited.add(current_url)
+            
+            try:
+                # Respect crawl delay
+                import time
+                time.sleep(config.crawl_delay)
+                
+                # Make request
+                response = requests.get(
+                    current_url, 
+                    headers=headers, 
+                    timeout=config.request_timeout,
+                    allow_redirects=True
+                )
+                
+                # Create result
+                result = CrawlResult(
+                    url=current_url,
+                    status_code=response.status_code,
+                    content=response.text,
+                    headers=dict(response.headers),
+                    response_time=response.elapsed.total_seconds(),
+                    size_bytes=len(response.content)
+                )
+                
+                # Extract links if successful
+                if 200 <= response.status_code < 300:
+                    soup = BeautifulSoup(response.text, 'html.parser')
+                    links = []
+                    
+                    for link in soup.find_all(['a', 'link']):
+                        href = link.get('href')
+                        if href:
+                            absolute_url = urljoin(current_url, href)
+                            parsed = urlparse(absolute_url)
+                            
+                            # Check if link should be followed
+                            if parsed.scheme in ['http', 'https']:
+                                # Check allowed domains
+                                if config.allowed_domains:
+                                    if not any(domain in parsed.netloc for domain in config.allowed_domains):
+                                        continue
+                                
+                                links.append(absolute_url)
+                                
+                                # Add to crawl queue if not visited
+                                if absolute_url not in visited and len(to_visit) < config.max_pages * 2:
+                                    to_visit.append((absolute_url, depth + 1))
+                    
+                    result.links = links
+                
+                results.append(result)
+                logger.debug(f"Crawled {current_url}: {response.status_code}")
+                
+            except Exception as e:
+                logger.error(f"Failed to crawl {current_url}: {e}")
+                results.append(CrawlResult(
+                    url=current_url,
+                    status_code=0,
+                    content="",
+                    headers={},
+                    error=str(e)
+                ))
+        
+        return results
     
     async def crawl_website(self, website_url: str, config: Optional[SpiderConfig] = None) -> Dict[str, Any]:
         """Crawl an entire website and return aggregated results."""

@@ -1,0 +1,125 @@
+# Website Documentation Index
+
+Generated with Lapis Spider - AI-Enhanced Web Documentation
+
+## Overview
+
+Here's a comprehensive documentation index for your HUD SDK website, incorporating the provided page and anticipating other essential documentation sections.
+
+---
+
+# HUD SDK Documentation Index
+
+Welcome to the HUD SDK documentation! This index provides a structured overview of all available guides, references, and resources, designed to help you quickly find the information you need.
+
+## Table of Contents
+
+*   [Getting Started](#getting-started)
+*   [Key Concepts](#key-concepts)
+*   [Guides & Examples](#guides--examples)
+*   [API Reference](#api-reference)
+*   [Advanced Topics](#advanced-topics)
+*   [Additional Resources](#additional-resources)
+*   [Logical Reading Order for Newcomers](#logical-reading-order-for-newcomers)
+
+---
+
+## Getting Started
+
+This section provides the essential information to kickstart your journey with the HUD SDK, from initial setup to running your first tasks.
+
+*   ### **[Quickstart - HUD SDK](quickstart.md)** ⭐️ (Most Important)
+    *   This comprehensive guide provides a foundational introduction to the HUD SDK. It covers essential steps from installation and API key configuration to defining and running your first tasks. You'll explore various agent interaction patterns, including browser automation and evaluation with TaskSets, and learn about key features like MCP telemetry and common task implementation examples. This page is designed to equip you with the knowledge to start building and evaluating agents immediately.
+
+## Key Concepts
+
+Dive deeper into the fundamental building blocks and terminology of the HUD SDK. Understanding these concepts is crucial for effective agent development and evaluation.
+
+*   ### What is an Agent?
+    *   An in-depth explanation of agents within the HUD SDK, their architecture, capabilities, and how they interact with the environment.
+*   ### Tasks & TaskSets Explained
+    *   A detailed look at defining, structuring, and executing tasks and TaskSets. Learn how to design effective evaluation scenarios for your agents.
+*   ### Understanding MCP Telemetry
+    *   Learn how to leverage MCP telemetry for monitoring agent performance, debugging behavior, and gathering valuable insights during task execution.
+
+## Guides & Examples
+
+Practical guides and real-world examples to help you implement specific functionalities and solve common problems using the HUD SDK.
+
+*   ### Browser Automation Guide
+    *   Step-by-step instructions and code examples for implementing robust browser automation tasks with the HUD SDK.
+*   ### Building Custom Tasks
+    *   Best practices and detailed examples for creating your own specialized tasks to meet unique evaluation requirements.
+*   ### Evaluating Agents with TaskSets
+    *   A comprehensive guide on setting up, running, and analyzing agent evaluations using predefined or custom TaskSets.
+*   ### Integrating with External Tools
+    *   Examples of how to integrate the HUD SDK with other development tools and platforms.
+
+## API Reference
+
+The complete reference documentation for all HUD SDK classes, methods, and functions. This section is for developers seeking detailed information on specific API elements.
+
+*   ### HUD SDK API Reference
+    *   Comprehensive documentation of all public APIs, including classes, methods, properties, and data types.
+    *   *Sub-sections (anticipated):*
+        *   `hud_sdk.core`
+        *   `hud_sdk.agents`
+        *   `hud_sdk.tasks`
+        *   `hud_sdk.telemetry`
+        *   `hud_sdk.utils`
+
+## Advanced Topics
+
+Explore advanced features, optimization techniques, and complex use cases for experienced HUD SDK users.
+
+*   ### Optimizing Agent Performance
+    *   Techniques and strategies for improving the efficiency, speed, and resource utilization of your agents.
+*   ### Custom Agent Architectures
+    *   Guidance on designing and implementing more complex or specialized agent architectures.
+*   ### Scaling Evaluations
+    *   Strategies for running large-scale agent evaluations and managing resources efficiently.
+
+## Additional Resources
+
+Find supplementary information, troubleshooting tips, and release history for the HUD SDK.
+
+*   ### Troubleshooting & FAQ
+    *   Common issues and their solutions, along with frequently asked questions about the HUD SDK.
+*   ### Release Notes
+    *   Detailed overview of new features, improvements, bug fixes, and breaking changes in each SDK version.
+*   ### Community & Support
+    *   Information on how to get support, join the community, and contribute to the HUD SDK project.
+
+---
+
+## Logical Reading Order for Newcomers
+
+For users new to the HUD SDK, we recommend the following reading path to get up and running quickly and effectively:
+
+1.  **[Quickstart - HUD SDK](#quickstart---hud-sdk)**: Start here to get a foundational understanding and run your first tasks.
+2.  **Key Concepts**:
+    *   [What is an Agent?](#what-is-an-agent)
+    *   [Tasks & TaskSets Explained](#tasks--tasksets-explained)
+    *   [Understanding MCP Telemetry](#understanding-mcp-telemetry)
+3.  **Guides & Examples**:
+    *   [Browser Automation Guide](#browser-automation-guide)
+    *   [Building Custom Tasks](#building-custom-tasks)
+    *   [Evaluating Agents with TaskSets](#evaluating-agents-with-tasksets)
+4.  **API Reference**: Consult this section as needed for detailed information on specific SDK components.
+5.  **Advanced Topics** and **Additional Resources**: Explore these sections once you are comfortable with the basics and core functionalities.
+
+## Pages
+
+
+```
+- Path: /quickstart
+- Title: Quickstart - hud SDK
+- Description: A comprehensive guide to the HUD SDK, covering installation, API key configuration, task definition, and agent development. It demonstrates browser automation, TaskSet evaluation, MCP telemetry, and common task patterns for building and evaluating agents.
+- Keywords: HUD SDK, quickstart, installation, API key, task definition, agent development, browser automation, CDP, TaskSet, evaluation, MCP telemetry, common tasks, question answering, form interaction, spreadsheet automation, response-only tasks
+- Content-Type: Quickstart Guide
+```
+
+
+---
+Generated on: 2102887.375806708
+Total Pages: 1

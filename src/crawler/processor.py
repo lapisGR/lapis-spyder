@@ -92,6 +92,18 @@ class HTMLProcessor:
             for element in soup.find_all(tag):
                 element.decompose()
         
+        # Remove navigation elements by tag
+        for tag in ['nav', 'header', 'footer', 'aside']:
+            for element in soup.find_all(tag):
+                element.decompose()
+        
+        # Remove elements with navigation-related classes
+        nav_classes = ['navigation', 'nav', 'menu', 'sidebar', 'header', 'footer', 
+                      'breadcrumb', 'toc', 'table-of-contents']
+        for class_name in nav_classes:
+            for element in soup.find_all(class_=re.compile(rf'\b{class_name}\b', re.I)):
+                element.decompose()
+        
         # Remove hidden elements
         for element in soup.find_all(attrs={'style': re.compile(r'display:\s*none', re.I)}):
             element.decompose()
@@ -277,6 +289,80 @@ class HTMLProcessor:
         
         return text.strip()
     
+    def _extract_code_blocks(self, soup: BeautifulSoup) -> List[tuple]:
+        """Extract code blocks and convert them to clean markdown format."""
+        code_blocks = []
+        
+        # First look for div elements with code-block class (modern documentation sites)
+        all_divs = soup.find_all('div')
+        for div in all_divs:
+            classes = div.get('class', [])
+            if classes and any('code-block' in cls for cls in classes):
+                pre_tag = div.find('pre')
+                if pre_tag:
+                    # Extract language from div classes
+                    language = ''
+                    div_classes = ' '.join(classes)
+                    if 'language-' in div_classes:
+                        lang_match = re.search(r'language-(\w+)', div_classes)
+                        if lang_match:
+                            language = lang_match.group(1)
+                    
+                    # Get code content
+                    code_text = pre_tag.get_text()
+                    
+                    # Create clean code block
+                    clean_code = f"\n```{language}\n{code_text.strip()}\n```\n"
+                    
+                    # Replace the entire div with placeholder
+                    code_blocks.append((div, clean_code))
+        
+        # Also look for standalone pre tags (fallback for simpler sites)
+        for pre_tag in soup.find_all('pre'):
+            # Skip if already processed as part of code-block div
+            parent = pre_tag.parent
+            is_in_code_block = False
+            while parent:
+                if parent.name == 'div':
+                    parent_classes = parent.get('class', [])
+                    if parent_classes and any('code-block' in cls for cls in parent_classes):
+                        is_in_code_block = True
+                        break
+                parent = parent.parent
+            
+            if not is_in_code_block:
+                # No code-block parent found, process this pre tag
+                # Extract code content
+                code_tag = pre_tag.find('code')
+                if code_tag:
+                    # Modern syntax highlighted code - extract text without spans
+                    code_text = code_tag.get_text()
+                else:
+                    # Simple pre block
+                    code_text = pre_tag.get_text()
+                
+                # Determine language from pre or code tag classes
+                language = ''
+                element_with_class = code_tag if code_tag and code_tag.get('class') else pre_tag
+                if element_with_class and element_with_class.get('class'):
+                    classes = ' '.join(element_with_class.get('class', []))
+                    # Look for language indicators
+                    if 'language-' in classes:
+                        lang_match = re.search(r'language-(\w+)', classes)
+                        if lang_match:
+                            language = lang_match.group(1)
+                    elif 'python' in classes.lower():
+                        language = 'python'
+                    elif 'javascript' in classes.lower() or 'js' in classes.lower():
+                        language = 'javascript'
+                
+                # Create clean code block
+                clean_code = f"\n```{language}\n{code_text.strip()}\n```\n"
+                
+                code_blocks.append((pre_tag, clean_code))
+        
+        return code_blocks
+    
     def html_to_text(self, html: str) -> str:
         """Convert HTML to plain text."""
         soup = BeautifulSoup(html, 'html5lib')
@@ -287,6 +373,16 @@ class HTMLProcessor:
         """Convert HTML to Markdown format."""
         try:
             soup = BeautifulSoup(html, 'html5lib')
+            
+            # Extract and preserve code blocks before cleaning
+            code_blocks = self._extract_code_blocks(soup)
+            
+            # Replace code blocks with placeholders
+            for i, (element, _) in enumerate(code_blocks):
+                placeholder = soup.new_tag('p')
+                placeholder.string = f"CODEBLOCKPLACEHOLDER{i:04d}"
+                element.replace_with(placeholder)
+            
             self._clean_html(soup)
             
             # Convert to markdown
@@ -295,11 +391,17 @@ class HTMLProcessor:
                 heading_style="ATX",
                 bullets="-",
                 code_language="python",
-                strip=['script', 'style'],
-                convert=['a', 'img', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-                        'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'strong',
-                        'em', 'table', 'thead', 'tbody', 'tr', 'th', 'td']
+                wrap=False,  # Don't wrap lines
+                convert=['p', 'div', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
+                        'strong', 'em', 'b', 'i', 'a', 'ul', 'ol', 'li', 
+                        'blockquote', 'code', 'pre', 'img', 'hr', 'br',
+                        'table', 'thead', 'tbody', 'tr', 'th', 'td']  # Explicitly convert these tags
             )
+            
+            # Restore code blocks
+            for i, (_, clean_code) in enumerate(code_blocks):
+                placeholder = f"CODEBLOCKPLACEHOLDER{i:04d}"
+                markdown = markdown.replace(placeholder, clean_code)
             
             # Post-process markdown
             markdown = self._post_process_markdown(markdown, base_url)
@@ -330,6 +432,15 @@ class HTMLProcessor:
         
         # Remove excessive blank lines
         markdown = re.sub(r'\n{3,}', '\n\n', markdown)
+        
+        # Remove standalone "Copy" lines
+        markdown = re.sub(r'^Copy\s*$', '', markdown, flags=re.MULTILINE)
+        
+        # Remove [​] artifacts
+        markdown = re.sub(r'\[​\]', '', markdown)
+        
+        # Clean up headers with [​] links
+        markdown = re.sub(r'^(#{1,6})\s*\[​\]\([^)]+\)\s*(.+)$', r'\1 \2', markdown, flags=re.MULTILINE)
         
         # Ensure headers have blank lines around them
         markdown = re.sub(r'([^\n])\n(#{1,6} )', r'\1\n\n\2', markdown)

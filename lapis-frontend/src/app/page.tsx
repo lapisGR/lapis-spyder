@@ -14,8 +14,12 @@ export default function HomePage() {
     setIsAuthenticated(!!token);
     setLoading(false);
 
-    // Check API health - commented out for now if backend is not running
-    // api.checkHealth().then(setHealthStatus).catch(console.error);
+    // Check API health
+    api.getSystemStatus().then(result => {
+      if (result.data) {
+        setHealthStatus(result.data);
+      }
+    }).catch(console.error);
   }, []);
 
   if (loading) {
@@ -99,7 +103,7 @@ export default function HomePage() {
             </div>
             
             <div className="text-sm text-gray-500 text-center mt-4">
-              Backend API not connected. Please ensure the backend is running on port 8000.
+              Backend API not connected. Please ensure the backend is running on port 8080.
             </div>
           </div>
         </div>

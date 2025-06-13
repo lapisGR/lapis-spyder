@@ -1,0 +1,91 @@
+# docs.hud.so Documentation
+
+- [Quickstart - hud SDK](https://docs.hud.so/)
+    - [1. Installation](https://docs.hud.so/#1-installation): Install the hud SDK:
+    - [2. API Key Setup](https://docs.hud.so/#2-api-key-setup): Set your API keys in a .env file (get your HUD API key from app.hud.so):
+    - [3. Your First Task](https://docs.hud.so/#3-your-first-task)
+      - [Manual Agent Loop](https://docs.hud.so/#manual-agent-loop)
+    - [4. Browser Interaction Patterns](https://docs.hud.so/#4-browser-interaction-patterns)
+      - [Live Streaming](https://docs.hud.so/#live-streaming)
+      - [Browser Use Integration through CDP](https://docs.hud.so/#browser-use-integration-through-cdp)
+    - [5. TaskSet Evaluation](https://docs.hud.so/#5-taskset-evaluation): Evaluate your agent on pre-built TaskSets:
+    - [6. MCP Telemetry Integration](https://docs.hud.so/#6-mcp-telemetry-integration): HUD automatically captures MCP tool calls for debugging:
+    - [7. Common Task Patterns](https://docs.hud.so/#7-common-task-patterns)
+      - [Question Answering](https://docs.hud.so/#question-answering)
+      - [Form Interaction](https://docs.hud.so/#form-interaction)
+      - [Spreadsheet Tasks](https://docs.hud.so/#spreadsheet-tasks)
+      - [Response-Only Tasks (No Browser)](https://docs.hud.so/#response-only-tasks-no-browser)
+    - [Next Steps](https://docs.hud.so/#next-steps): - Task Creation Guide: Deep dive into building custom evaluation scenarios - Custom Environments: Create Docker-based environments for your applications - Browser Environment: Learn browser-specific features - Examples: Browse runnable notebooks
+    - [Custom Installation & Setup](https://docs.hud.so/#custom-installation-setup): If you haven’t installed the SDK yet, here’s how:
+      - [Standard Installation](https://docs.hud.so/#standard-installation): Install the HUD SDK using pip:
+      - [Requirements](https://docs.hud.so/#requirements): - Python: 3.10 or higher - API Keys: - HUDAPIKEY (required for platform features like job/trace uploading, loading remote TaskSets). - OPENAIAPIKEY (optional, required if using OperatorAgent or other OpenAI-based agents). - ANTHROPICAPIKEY (optional, required if using ClaudeAgent or other Anthrop...
+      - [API Key Configuration](https://docs.hud.so/#api-key-configuration): The SDK automatically loads API keys from environment variables or a .env file located in your project’s root directory.
+      - [Development Installation (for Contributors)](https://docs.hud.so/#development-installation-for-contributors): If you plan to contribute to the SDK or need an editable install:
+
+- [Quickstart - hud SDK](https://docs.hud.so/quickstart): This Quickstart guide provides a comprehensive introduction to the HUD SDK, covering essential steps from installation and API key configuration to defining and running your first tasks. It demonstrates various agent interaction patterns, including browser automation and evaluation with TaskSets, and highlights key features like MCP telemetry and common task implementation examples. The guide aims to equip users with the foundational knowledge to start building and evaluating agents using the HUD SDK.
+    - [1. Installation](https://docs.hud.so/quickstart#1-installation): Install the hud SDK:
+    - [2. API Key Setup](https://docs.hud.so/quickstart#2-api-key-setup): Set your API keys in a .env file (get your HUD API key from app.hud.so):
+    - [3. Your First Task](https://docs.hud.so/quickstart#3-your-first-task)
+      - [Manual Agent Loop](https://docs.hud.so/quickstart#manual-agent-loop)
+    - [4. Browser Interaction Patterns](https://docs.hud.so/quickstart#4-browser-interaction-patterns)
+      - [Live Streaming](https://docs.hud.so/quickstart#live-streaming)
+      - [Browser Use Integration through CDP](https://docs.hud.so/quickstart#browser-use-integration-through-cdp)
+    - [5. TaskSet Evaluation](https://docs.hud.so/quickstart#5-taskset-evaluation): Evaluate your agent on pre-built TaskSets:
+    - [6. MCP Telemetry Integration](https://docs.hud.so/quickstart#6-mcp-telemetry-integration): HUD automatically captures MCP tool calls for debugging:
+    - [7. Common Task Patterns](https://docs.hud.so/quickstart#7-common-task-patterns)
+      - [Question Answering](https://docs.hud.so/quickstart#question-answering)
+      - [Form Interaction](https://docs.hud.so/quickstart#form-interaction)
+      - [Spreadsheet Tasks](https://docs.hud.so/quickstart#spreadsheet-tasks)
+      - [Response-Only Tasks (No Browser)](https://docs.hud.so/quickstart#response-only-tasks-no-browser)
+    - [Next Steps](https://docs.hud.so/quickstart#next-steps): - Task Creation Guide: Deep dive into building custom evaluation scenarios - Custom Environments: Create Docker-based environments for your applications - Browser Environment: Learn browser-specific features - Examples: Browse runnable notebooks
+    - [Custom Installation & Setup](https://docs.hud.so/quickstart#custom-installation-setup): If you haven’t installed the SDK yet, here’s how:
+      - [Standard Installation](https://docs.hud.so/quickstart#standard-installation): Install the HUD SDK using pip:
+      - [Requirements](https://docs.hud.so/quickstart#requirements): - Python: 3.10 or higher - API Keys: - HUDAPIKEY (required for platform features like job/trace uploading, loading remote TaskSets). - OPENAIAPIKEY (optional, required if using OperatorAgent or other OpenAI-based agents). - ANTHROPICAPIKEY (optional, required if using ClaudeAgent or other Anthrop...
+      - [API Key Configuration](https://docs.hud.so/quickstart#api-key-configuration): The SDK automatically loads API keys from environment variables or a .env file located in your project’s root directory.
+      - [Development Installation (for Contributors)](https://docs.hud.so/quickstart#development-installation-for-contributors): If you plan to contribute to the SDK or need an editable install:
+
+- [Tasks - hud SDK](https://docs.hud.so/task-creation)
+  - [Creating Tasks & TaskSets](https://docs.hud.so/task-creation#creating-tasks-tasksets): Tasks define what browser-based agents should accomplish and how success is measured. TaskSets group these tasks for benchmarking and sharing.
+    - [Core Task Workflow](https://docs.hud.so/task-creation#core-task-workflow): 1. Define Task: Specify prompt, setup, and evaluation criteria for a specific environment. 2. Test Locally: Use gym.make(task) and env.run(agent) to iterate on your task. 3. (Optional) Group into TaskSet: Collect related tasks for benchmarking or organized evaluation. 4. (Optional) Upload TaskSet...
+    - [Task Structure](https://docs.hud.so/task-creation#task-structure): While tasks can be designed for various environments, this guide focuses on tasks for the hud-browser. For creating tasks that operate in specialized Docker environments (e.g., desktop applications, custom web apps), please see the Environment Creation & Contribution Guide.
+    - [Setup Functions (for `hud-browser`)](https://docs.hud.so/task-creation#setup-functions-for-hud-browser)
+    - [Evaluate Functions (Verifying Task Success)](https://docs.hud.so/task-creation#evaluate-functions-verifying-task-success)
+    - [TaskSet Creation & Management](https://docs.hud.so/task-creation#taskset-creation-management): TaskSets are collections of related Task objects, useful for running benchmarks, organizing evaluations, or sharing common scenarios.
+      - [Creating a TaskSet](https://docs.hud.so/task-creation#creating-a-taskset)
+      - [Uploading & Publishing TaskSets](https://docs.hud.so/task-creation#uploading-publishing-tasksets): Once created, you can upload your TaskSet to the HUD platform to make it available for yourself, your team, or the public.
+      - [Publishing and Sharing](https://docs.hud.so/task-creation#publishing-and-sharing)
+    - [Pre-built TaskSets](https://docs.hud.so/task-creation#pre-built-tasksets): Load and run existing benchmarks:
+    - [MCP Telemetry with Tasks](https://docs.hud.so/task-creation#mcp-telemetry-with-tasks): When using MCP-enabled agents, HUD automatically traces tool calls made during task execution if wrapped in hud.trace():
+    - [Best Practices for Task Design](https://docs.hud.so/task-creation#best-practices-for-task-design): 1. Clear Prompts: Ensure agent understands the goal and success criteria. 2. Atomic Tasks: Break down complex goals into smaller, testable tasks. 3. Robust Setup: Create consistent starting states. 4. Comprehensive Evaluation: Use multiple evaluation functions to validate success. 5. Iterate: Tes...
+    - [Advanced Patterns](https://docs.hud.so/task-creation#advanced-patterns)
+      - [Environment-Specific Evaluation](https://docs.hud.so/task-creation#environment-specific-evaluation)
+      - [Dynamic Task Generation](https://docs.hud.so/task-creation#dynamic-task-generation)
+    - [Related Guides](https://docs.hud.so/task-creation#related-guides): - Browser Environment: Detailed guide on using hud-browser, including all its setup and evaluation functions. - Environment Creation & Contribution: For tasks requiring specialized Docker-based environments. - Quickstart: Introductory examples and common usage patterns. - API Reference: Comprehen...
+
+## Metadata
+
+- **Domain**: docs.hud.so
+- **Total Pages**: 3
+- **AI Processed Pages**: 1/3
+- **Website ID**: d41d8f44-4e19-4064-b4b7-218490cbcb77
+- **Generated**: 2025-06-09 15:31:25 UTC
+
+## AI Enhancement Available
+
+**2 pages** have not been processed with AI enhancement. AI processing adds:
+
+- Detailed summaries for each page and section
+- Semantic categorization and tagging
+- Improved content structure and navigation
+- Enhanced search and discovery capabilities
+
+To process these pages, use the `/content/{website_id}/process` endpoint with the following page IDs:
+
+```json
+{
+  "page_ids": [
+    "8927beac-2951-45be-bf42-6a51982a7318",  // Quickstart - hud SDK
+    "db478ddf-2e99-4248-a4bf-1705938c8f0b"  // Tasks - hud SDK
+  ]
+}
+```

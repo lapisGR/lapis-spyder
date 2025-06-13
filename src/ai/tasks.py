@@ -5,6 +5,7 @@ from typing import Dict, List, Optional
 import json
 
 from celery import Task
+from sqlalchemy import text
 
 from src.celery import app
 from src.database.mongodb import MongoDBOperations, get_mongo_collection
@@ -46,8 +47,8 @@ def process_page_with_ai(self: Task, page_id: str, website_id: str) -> Dict:
             # Get page metadata from PostgreSQL
             with get_db_context() as db:
                 page_data = db.execute(
-                    "SELECT url, title FROM pages WHERE id = %s",
-                    (page_id,)
+                    text("SELECT url, title FROM pages WHERE id = :page_id"),
+                    {"page_id": page_id}
                 ).fetchone()
                 
                 if not page_data:

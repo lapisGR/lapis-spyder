@@ -29,7 +29,8 @@ class JWTHandler:
         else:
             expire = datetime.utcnow() + timedelta(minutes=settings.jwt_access_token_expire_minutes)
         
-        to_encode.update({"exp": expire, "type": "access"})
+        # Convert to timestamp for JWT
+        to_encode.update({"exp": int(expire.timestamp()), "type": "access"})
         
         try:
             encoded_jwt = jwt.encode(
@@ -50,7 +51,7 @@ class JWTHandler:
         """Create refresh token."""
         to_encode = data.copy()
         expire = datetime.utcnow() + timedelta(days=settings.jwt_refresh_token_expire_days)
-        to_encode.update({"exp": expire, "type": "refresh"})
+        to_encode.update({"exp": int(expire.timestamp()), "type": "refresh"})
         
         try:
             encoded_jwt = jwt.encode(
@@ -101,7 +102,9 @@ class JWTHandler:
                     headers={"WWW-Authenticate": "Bearer"},
                 )
             
-            if datetime.utcnow() > datetime.fromtimestamp(exp):
+            # Convert both to timestamps for comparison to avoid timezone issues
+            current_timestamp = datetime.utcnow().timestamp()
+            if current_timestamp > exp:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Token has expired",

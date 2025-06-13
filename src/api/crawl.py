@@ -6,6 +6,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from pydantic import BaseModel, Field, HttpUrl, validator
 
 from src.auth.dependencies import get_current_user, require_auth
@@ -94,11 +95,11 @@ async def start_crawl(
         
         # Check if website exists
         website = db.execute(
-            """
+            text("""
             SELECT id, name FROM websites 
-            WHERE user_id = %s AND url = %s
-            """,
-            (str(current_user.id), url_str)
+            WHERE user_id = :user_id AND url = :url
+            """),
+            {"user_id": str(current_user.id), "url": url_str}
         ).fetchone()
         
         if website:
@@ -107,18 +108,18 @@ async def start_crawl(
         else:
             # Create new website
             result = db.execute(
-                """
+                text("""
                 INSERT INTO websites (user_id, url, domain, name, crawl_config)
-                VALUES (%s, %s, %s, %s, %s::jsonb)
+                VALUES (:user_id, :url, :domain, :name, CAST(:config AS jsonb))
                 RETURNING id
-                """,
-                (
-                    str(current_user.id),
-                    url_str,
-                    domain,
-                    request.name or domain,
-                    request.config.dict()
-                )
+                """),
+                {
+                    "user_id": str(current_user.id),
+                    "url": url_str,
+                    "domain": domain,
+                    "name": request.name or domain,
+                    "config": request.config.model_dump_json()
+                }
             )
             website_id = str(result.fetchone()[0])
             website_name = request.name or domain
@@ -127,11 +128,11 @@ async def start_crawl(
         # Create crawl job
         crawl_job_id = str(uuid.uuid4())
         db.execute(
-            """
+            text("""
             INSERT INTO crawl_jobs (id, website_id, status)
-            VALUES (%s, %s, 'pending')
-            """,
-            (crawl_job_id, website_id)
+            VALUES (:job_id, :website_id, 'pending')
+            """),
+            {"job_id": crawl_job_id, "website_id": website_id}
         )
         db.commit()
         
@@ -145,13 +146,13 @@ async def start_crawl(
         
         # Get created job
         job = db.execute(
-            """
+            text("""
             SELECT id, website_id, status, started_at, completed_at, 
                    pages_crawled, error_message, created_at
             FROM crawl_jobs
-            WHERE id = %s
-            """,
-            (crawl_job_id,)
+            WHERE id = :job_id
+            """),
+            {"job_id": crawl_job_id}
         ).fetchone()
         
         return CrawlJobResponse(
@@ -182,14 +183,14 @@ async def get_crawl_status(
     """Get crawl job status."""
     # Verify job belongs to user
     job = db.execute(
-        """
+        text("""
         SELECT cj.id, cj.website_id, cj.status, cj.started_at, cj.completed_at,
                cj.pages_crawled, cj.error_message, cj.created_at
         FROM crawl_jobs cj
         JOIN websites w ON cj.website_id = w.id
-        WHERE cj.id = %s AND w.user_id = %s
-        """,
-        (job_id, str(current_user.id))
+        WHERE cj.id = :job_id AND w.user_id = :user_id
+        """),
+        {"job_id": job_id, "user_id": str(current_user.id)}
     ).fetchone()
     
     if not job:
@@ -224,18 +225,19 @@ async def get_crawl_history(
                cj.started_at, cj.completed_at, cj.created_at
         FROM crawl_jobs cj
         JOIN websites w ON cj.website_id = w.id
-        WHERE w.user_id = %s
+        WHERE w.user_id = :user_id
     """
-    params = [str(current_user.id)]
+    params = {"user_id": str(current_user.id)}
     
     if status:
-        query += " AND cj.status = %s"
-        params.append(status)
+        query += " AND cj.status = :status"
+        params["status"] = status
     
-    query += " ORDER BY cj.created_at DESC LIMIT %s OFFSET %s"
-    params.extend([limit, offset])
+    query += " ORDER BY cj.created_at DESC LIMIT :limit OFFSET :offset"
+    params["limit"] = limit
+    params["offset"] = offset
     
-    jobs = db.execute(query, params).fetchall()
+    jobs = db.execute(text(query), params).fetchall()
     
     history = []
     for job in jobs:
@@ -267,13 +269,13 @@ async def cancel_crawl(
     """Cancel a running crawl job."""
     # Verify job belongs to user and is cancellable
     job = db.execute(
-        """
+        text("""
         SELECT cj.status
         FROM crawl_jobs cj
         JOIN websites w ON cj.website_id = w.id
-        WHERE cj.id = %s AND w.user_id = %s
-        """,
-        (job_id, str(current_user.id))
+        WHERE cj.id = :job_id AND w.user_id = :user_id
+        """),
+        {"job_id": job_id, "user_id": str(current_user.id)}
     ).fetchone()
     
     if not job:
@@ -290,12 +292,12 @@ async def cancel_crawl(
     
     # Update job status
     db.execute(
-        """
+        text("""
         UPDATE crawl_jobs 
         SET status = 'cancelled', completed_at = CURRENT_TIMESTAMP
-        WHERE id = %s
-        """,
-        (job_id,)
+        WHERE id = :job_id
+        """),
+        {"job_id": job_id}
     )
     db.commit()
     
@@ -316,7 +318,7 @@ async def get_crawl_statistics(
 ):
     """Get user's crawling statistics."""
     stats = db.execute(
-        """
+        text("""
         SELECT 
             COUNT(*) as total_jobs,
             COUNT(CASE WHEN cj.status = 'completed' THEN 1 END) as completed_jobs,
@@ -326,9 +328,9 @@ async def get_crawl_statistics(
             SUM(cj.pages_crawled) as total_pages_crawled
         FROM crawl_jobs cj
         JOIN websites w ON cj.website_id = w.id
-        WHERE w.user_id = %s
-        """,
-        (str(current_user.id),)
+        WHERE w.user_id = :user_id
+        """),
+        {"user_id": str(current_user.id)}
     ).fetchone()
     
     return {
