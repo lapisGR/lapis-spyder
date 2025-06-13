@@ -19,14 +19,16 @@ export default function WebsitesPage() {
 
   const loadWebsites = async () => {
     try {
-      const data = await api.getWebsites();
+      const result = await api.getWebsites();
+      const data = result.data || [];
       setWebsites(data);
       
       // Load latest crawl job for each website
       const jobs: Record<string, CrawlJob> = {};
       for (const website of data) {
         try {
-          const history = await api.getCrawlHistory(website.id);
+          const historyResult = await api.getCrawlHistory(website.id);
+          const history = historyResult.data || [];
           if (history.length > 0) {
             jobs[website.id] = history[0];
           }

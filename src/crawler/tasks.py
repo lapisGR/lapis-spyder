@@ -1,12 +1,14 @@
 """Crawler Celery tasks."""
 
 import asyncio
+import json
 from datetime import datetime
 from typing import Dict, List, Optional
 from uuid import UUID
 
 from celery import Task
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 from src.celery import app
 from src.database.postgres import get_db_context
@@ -50,7 +52,18 @@ def crawl_website_task(self: Task, crawl_job_id: str, website_id: str,
         
         try:
             crawl_results = loop.run_until_complete(
-                spider_crawl(website_url, spider_config)
+                spider_crawl(
+                    website_url,
+                    max_pages=spider_config.max_pages,
+                    max_depth=spider_config.max_depth,
+                    concurrent_requests=spider_config.concurrent_requests,
+                    respect_robots_txt=spider_config.respect_robots_txt,
+                    user_agent=spider_config.user_agent,
+                    crawl_delay=spider_config.crawl_delay,
+                    allowed_domains=spider_config.allowed_domains,
+                    blacklist_patterns=spider_config.blacklist_patterns,
+                    whitelist_patterns=spider_config.whitelist_patterns
+                )
             )
         finally:
             loop.close()
@@ -61,17 +74,15 @@ def crawl_website_task(self: Task, crawl_job_id: str, website_id: str,
         
         for result in crawl_results.get("results", []):
             try:
-                # Process each page
-                page_data = loop.run_until_complete(
-                    process_crawled_page(
-                        crawl_job_id=crawl_job_id,
-                        website_id=website_id,
-                        url=result.url,
-                        html=result.content,
-                        status_code=result.status_code,
-                        headers=result.headers,
-                        error=result.error
-                    )
+                # Process each page using synchronous version
+                page_data = process_crawled_page_sync(
+                    crawl_job_id=crawl_job_id,
+                    website_id=website_id,
+                    url=result.url,
+                    html=result.content,
+                    status_code=result.status_code,
+                    headers=result.headers,
+                    error=result.error
                 )
                 
                 if page_data:
@@ -131,6 +142,80 @@ def crawl_website_task(self: Task, crawl_job_id: str, website_id: str,
             error_message=str(e)
         )
         raise
+
+
+def process_crawled_page_sync(crawl_job_id: str, website_id: str, url: str,
+                             html: str, status_code: int, headers: Dict,
+                             error: Optional[str] = None) -> Optional[Dict]:
+    """Process a single crawled page (synchronous version)."""
+    try:
+        # Check if page should be processed
+        if error or status_code >= 400 or not html:
+            logger.warning(f"Skipping page {url}: status={status_code}, error={error}")
+            return None
+        
+        # Extract content
+        extracted = extract_content(html, url)
+        
+        # Convert to markdown
+        markdown_content = html_to_markdown(html, url)
+        
+        # Process markdown
+        markdown_doc = process_markdown(
+            markdown_content,
+            url=url,
+            title=extracted.get("title", ""),
+            metadata=extracted.get("metadata", {})
+        )
+        
+        # Calculate content hash
+        content_hash = hash_content(html)
+        
+        # Store in database
+        page_id = _store_page_data_sync(
+            crawl_job_id=crawl_job_id,
+            website_id=website_id,
+            url=url,
+            content_hash=content_hash,
+            title=extracted.get("title", ""),
+            meta_description=extracted.get("description", "")
+        )
+        
+        # Store HTML in MongoDB
+        MongoDBOperations.insert_html_sync(
+            crawl_job_id=crawl_job_id,
+            page_id=page_id,
+            url=url,
+            html=html,
+            headers=headers,
+            status_code=status_code
+        )
+        
+        # Store markdown in MongoDB with structured content
+        MongoDBOperations.insert_markdown_sync(
+            page_id=page_id,
+            website_id=website_id,
+            url=url,
+            raw_markdown=markdown_content,
+            structured_markdown=markdown_doc.content,  # Use the processed content
+            metadata=markdown_doc.metadata
+        )
+        
+        logger.info(f"Successfully stored markdown for page {url} (id: {page_id})")
+        
+        return {
+            "page_id": page_id,
+            "url": url,
+            "title": extracted.get("title", ""),
+            "content_hash": content_hash,
+            "word_count": extracted.get("word_count", 0),
+            "links_count": len(extracted.get("links", [])),
+            "images_count": len(extracted.get("images", []))
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to process page {url}: {e}", exc_info=True)
+        return None
 
 
 async def process_crawled_page(crawl_job_id: str, website_id: str, url: str,
@@ -204,38 +289,94 @@ async def process_crawled_page(crawl_job_id: str, website_id: str, url: str,
         return None
 
 
+def _store_page_data_sync(crawl_job_id: str, website_id: str, url: str,
+                         content_hash: str, title: str, meta_description: str) -> str:
+    """Store page data in PostgreSQL (synchronous version)."""
+    with get_db_context() as db:
+        # Check if page exists
+        result = db.execute(
+            text("SELECT id FROM pages WHERE website_id = :website_id AND url = :url"),
+            {"website_id": website_id, "url": url}
+        )
+        existing_page = result.fetchone()
+        
+        if existing_page:
+            # Update existing page
+            page_id = str(existing_page[0])
+            db.execute(
+                text("""
+                UPDATE pages 
+                SET content_hash = :content_hash, title = :title, 
+                    meta_description = :meta_description,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = :id
+                """),
+                {
+                    "content_hash": content_hash,
+                    "title": title,
+                    "meta_description": meta_description,
+                    "id": page_id
+                }
+            )
+            db.commit()
+        else:
+            # Insert new page
+            result = db.execute(
+                text("""
+                INSERT INTO pages (website_id, url, url_path, content_hash, 
+                                 title, meta_description)
+                VALUES (:website_id, :url, :url_path, :content_hash, 
+                        :title, :meta_description)
+                RETURNING id
+                """),
+                {
+                    "website_id": website_id,
+                    "url": url,
+                    "url_path": url,
+                    "content_hash": content_hash,
+                    "title": title,
+                    "meta_description": meta_description
+                }
+            )
+            db.commit()
+            page_id = str(result.fetchone()[0])
+        
+        return page_id
+
+
 async def _store_page_data(crawl_job_id: str, website_id: str, url: str,
                           content_hash: str, title: str, meta_description: str) -> str:
     """Store page data in PostgreSQL."""
     with get_db_context() as db:
         # Check if page exists
         existing_page = db.execute(
-            "SELECT id FROM pages WHERE website_id = %s AND url = %s",
-            (website_id, url)
+            text("SELECT id FROM pages WHERE website_id = :website_id AND url = :url"),
+            {"website_id": website_id, "url": url}
         ).fetchone()
         
         if existing_page:
             # Update existing page
             page_id = str(existing_page[0])
             db.execute(
-                """
+                text("""
                 UPDATE pages 
-                SET content_hash = %s, title = %s, meta_description = %s,
+                SET content_hash = :content_hash, title = :title, meta_description = :meta_description,
                     updated_at = CURRENT_TIMESTAMP
-                WHERE id = %s
-                """,
-                (content_hash, title, meta_description, page_id)
+                WHERE id = :page_id
+                """),
+                {"content_hash": content_hash, "title": title, "meta_description": meta_description, "page_id": page_id}
             )
         else:
             # Insert new page
             result = db.execute(
-                """
+                text("""
                 INSERT INTO pages (website_id, url, url_path, content_hash, 
                                  title, meta_description)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                VALUES (:website_id, :url, :url_path, :content_hash, :title, :meta_description)
                 RETURNING id
-                """,
-                (website_id, url, url, content_hash, title, meta_description)
+                """),
+                {"website_id": website_id, "url": url, "url_path": url, 
+                 "content_hash": content_hash, "title": title, "meta_description": meta_description}
             )
             page_id = str(result.fetchone()[0])
         
@@ -246,8 +387,8 @@ def _update_crawl_job(crawl_job_id: str, status: str, pages_crawled: int = None,
                      error_message: str = None, statistics: Dict = None):
     """Update crawl job status in database."""
     with get_db_context() as db:
-        update_fields = ["status = %s"]
-        params = [status]
+        update_fields = ["status = :status"]
+        params = {"status": status, "crawl_job_id": crawl_job_id}
         
         if status == "running":
             update_fields.append("started_at = CURRENT_TIMESTAMP")
@@ -255,21 +396,20 @@ def _update_crawl_job(crawl_job_id: str, status: str, pages_crawled: int = None,
             update_fields.append("completed_at = CURRENT_TIMESTAMP")
         
         if pages_crawled is not None:
-            update_fields.append("pages_crawled = %s")
-            params.append(pages_crawled)
+            update_fields.append("pages_crawled = :pages_crawled")
+            params["pages_crawled"] = pages_crawled
         
         if error_message:
-            update_fields.append("error_message = %s")
-            params.append(error_message)
+            update_fields.append("error_message = :error_message")
+            params["error_message"] = error_message
         
         if statistics:
-            update_fields.append("statistics = %s")
-            params.append(statistics)
+            update_fields.append("statistics = CAST(:statistics AS jsonb)")
+            # Properly serialize dictionary to JSON string
+            params["statistics"] = json.dumps(statistics) if isinstance(statistics, dict) else statistics
         
-        params.append(crawl_job_id)
-        
-        query = f"UPDATE crawl_jobs SET {', '.join(update_fields)} WHERE id = %s"
-        db.execute(query, params)
+        query = f"UPDATE crawl_jobs SET {', '.join(update_fields)} WHERE id = :crawl_job_id"
+        db.execute(text(query), params)
 
 
 @app.task(name="process_page_content")

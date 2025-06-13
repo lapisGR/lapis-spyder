@@ -1,0 +1,71 @@
+# docs.hud.so Documentation
+
+- [Quickstart - hud SDK](https://docs.hud.so/)
+    - [[​](https://docs.hud.so/#1-installation)1. Installation](https://docs.hud.so/#httpsdocshudso1-installation1-installation): Install the hud SDK:
+    - [[​](https://docs.hud.so/#2-api-key-setup)2. API Key Setup](https://docs.hud.so/#httpsdocshudso2-api-key-setup2-api-key-setup): Set your API keys in a `.env` file (get your HUD API key from [app.hud.so](https://app.hud.so)):
+    - [[​](https://docs.hud.so/#3-your-first-task)3. Your First Task](https://docs.hud.so/#httpsdocshudso3-your-first-task3-your-first-task)
+      - [[​](https://docs.hud.so/#manual-agent-loop)Manual Agent Loop](https://docs.hud.so/#httpsdocshudsomanual-agent-loopmanual-agent-loop)
+    - [[​](https://docs.hud.so/#4-browser-interaction-patterns)4. Browser Interaction Patterns](https://docs.hud.so/#httpsdocshudso4-browser-interaction-patterns4-browser-interaction-patterns)
+      - [[​](https://docs.hud.so/#live-streaming)Live Streaming](https://docs.hud.so/#httpsdocshudsolive-streaminglive-streaming)
+      - [[​](https://docs.hud.so/#browser-use-integration-through-cdp)Browser Use Integration through CDP](https://docs.hud.so/#httpsdocshudsobrowser-use-integration-through-cdpbrowser-use-integration-through-cdp)
+    - [[​](https://docs.hud.so/#5-taskset-evaluation)5. TaskSet Evaluation](https://docs.hud.so/#httpsdocshudso5-taskset-evaluation5-taskset-evaluation): Evaluate your agent on pre-built TaskSets:
+    - [[​](https://docs.hud.so/#6-mcp-telemetry-integration)6. MCP Telemetry Integration](https://docs.hud.so/#httpsdocshudso6-mcp-telemetry-integration6-mcp-telemetry-integration): HUD automatically captures MCP tool calls for debugging:
+    - [[​](https://docs.hud.so/#7-common-task-patterns)7. Common Task Patterns](https://docs.hud.so/#httpsdocshudso7-common-task-patterns7-common-task-patterns)
+      - [[​](https://docs.hud.so/#question-answering)Question Answering](https://docs.hud.so/#httpsdocshudsoquestion-answeringquestion-answering)
+      - [[​](https://docs.hud.so/#form-interaction)Form Interaction](https://docs.hud.so/#httpsdocshudsoform-interactionform-interaction)
+      - [[​](https://docs.hud.so/#spreadsheet-tasks)Spreadsheet Tasks](https://docs.hud.so/#httpsdocshudsospreadsheet-tasksspreadsheet-tasks)
+      - [[​](https://docs.hud.so/#response-only-tasks-no-browser)Response-Only Tasks (No Browser)](https://docs.hud.so/#httpsdocshudsoresponse-only-tasks-no-browserresponse-only-tasks-no-browser)
+    - [[​](https://docs.hud.so/#next-steps)Next Steps](https://docs.hud.so/#httpsdocshudsonext-stepsnext-steps): - **[Task Creation Guide](https://docs.hud.so/task-creation)**: Deep dive into building custom evaluation scenarios
+    - [[​](https://docs.hud.so/#custom-installation-%26-setup)Custom Installation & Setup](https://docs.hud.so/#httpsdocshudsocustom-installation-26-setupcustom-installation-setup): If you haven’t installed the SDK yet, here’s how:
+      - [[​](https://docs.hud.so/#standard-installation)Standard Installation](https://docs.hud.so/#httpsdocshudsostandard-installationstandard-installation): Install the HUD SDK using pip:
+      - [[​](https://docs.hud.so/#requirements)Requirements](https://docs.hud.so/#httpsdocshudsorequirementsrequirements): - **Python:** 3.10 or higher
+      - [[​](https://docs.hud.so/#api-key-configuration)API Key Configuration](https://docs.hud.so/#httpsdocshudsoapi-key-configurationapi-key-configuration): The SDK automatically loads API keys from environment variables or a `.env` file located in your project’s root directory.
+      - [[​](https://docs.hud.so/#development-installation-for-contributors)Development Installation (for Contributors)](https://docs.hud.so/#httpsdocshudsodevelopment-installation-for-contributorsdevelopment-installation-for-contributors): If you plan to contribute to the SDK or need an editable install:
+
+- [Quickstart - hud SDK](https://docs.hud.so/quickstart): This Quickstart guide provides a comprehensive introduction to the HUD SDK, covering essential steps from installation and API key configuration to defining and running your first tasks. It demonstrates various agent interaction patterns, including browser automation and evaluation with TaskSets, and highlights key features like MCP telemetry and common task implementation examples. The guide aims to equip users with the foundational knowledge to start building and evaluating agents using the HUD SDK.
+    - [[​](https://docs.hud.so/quickstart#1-installation)1. Installation](https://docs.hud.so/quickstart#httpsdocshudsoquickstart1-installation1-installation): Install the hud SDK:
+    - [[​](https://docs.hud.so/quickstart#2-api-key-setup)2. API Key Setup](https://docs.hud.so/quickstart#httpsdocshudsoquickstart2-api-key-setup2-api-key-setup): Set your API keys in a `.env` file (get your HUD API key from [app.hud.so](https://app.hud.so)):
+    - [[​](https://docs.hud.so/quickstart#3-your-first-task)3. Your First Task](https://docs.hud.so/quickstart#httpsdocshudsoquickstart3-your-first-task3-your-first-task)
+      - [[​](https://docs.hud.so/quickstart#manual-agent-loop)Manual Agent Loop](https://docs.hud.so/quickstart#httpsdocshudsoquickstartmanual-agent-loopmanual-agent-loop)
+    - [[​](https://docs.hud.so/quickstart#4-browser-interaction-patterns)4. Browser Interaction Patterns](https://docs.hud.so/quickstart#httpsdocshudsoquickstart4-browser-interaction-patterns4-browser-interaction-patterns)
+      - [[​](https://docs.hud.so/quickstart#live-streaming)Live Streaming](https://docs.hud.so/quickstart#httpsdocshudsoquickstartlive-streaminglive-streaming)
+      - [[​](https://docs.hud.so/quickstart#browser-use-integration-through-cdp)Browser Use Integration through CDP](https://docs.hud.so/quickstart#httpsdocshudsoquickstartbrowser-use-integration-through-cdpbrowser-use-integration-through-cdp)
+    - [[​](https://docs.hud.so/quickstart#5-taskset-evaluation)5. TaskSet Evaluation](https://docs.hud.so/quickstart#httpsdocshudsoquickstart5-taskset-evaluation5-taskset-evaluation): Evaluate your agent on pre-built TaskSets:
+    - [[​](https://docs.hud.so/quickstart#6-mcp-telemetry-integration)6. MCP Telemetry Integration](https://docs.hud.so/quickstart#httpsdocshudsoquickstart6-mcp-telemetry-integration6-mcp-telemetry-integration): HUD automatically captures MCP tool calls for debugging:
+    - [[​](https://docs.hud.so/quickstart#7-common-task-patterns)7. Common Task Patterns](https://docs.hud.so/quickstart#httpsdocshudsoquickstart7-common-task-patterns7-common-task-patterns)
+      - [[​](https://docs.hud.so/quickstart#question-answering)Question Answering](https://docs.hud.so/quickstart#httpsdocshudsoquickstartquestion-answeringquestion-answering)
+      - [[​](https://docs.hud.so/quickstart#form-interaction)Form Interaction](https://docs.hud.so/quickstart#httpsdocshudsoquickstartform-interactionform-interaction)
+      - [[​](https://docs.hud.so/quickstart#spreadsheet-tasks)Spreadsheet Tasks](https://docs.hud.so/quickstart#httpsdocshudsoquickstartspreadsheet-tasksspreadsheet-tasks)
+      - [[​](https://docs.hud.so/quickstart#response-only-tasks-no-browser)Response-Only Tasks (No Browser)](https://docs.hud.so/quickstart#httpsdocshudsoquickstartresponse-only-tasks-no-browserresponse-only-tasks-no-browser)
+    - [[​](https://docs.hud.so/quickstart#next-steps)Next Steps](https://docs.hud.so/quickstart#httpsdocshudsoquickstartnext-stepsnext-steps): - **[Task Creation Guide](https://docs.hud.so/task-creation)**: Deep dive into building custom evaluation scenarios
+    - [[​](https://docs.hud.so/quickstart#custom-installation-%26-setup)Custom Installation & Setup](https://docs.hud.so/quickstart#httpsdocshudsoquickstartcustom-installation-26-setupcustom-installation-setup): If you haven’t installed the SDK yet, here’s how:
+      - [[​](https://docs.hud.so/quickstart#standard-installation)Standard Installation](https://docs.hud.so/quickstart#httpsdocshudsoquickstartstandard-installationstandard-installation): Install the HUD SDK using pip:
+      - [[​](https://docs.hud.so/quickstart#requirements)Requirements](https://docs.hud.so/quickstart#httpsdocshudsoquickstartrequirementsrequirements): - **Python:** 3.10 or higher
+      - [[​](https://docs.hud.so/quickstart#api-key-configuration)API Key Configuration](https://docs.hud.so/quickstart#httpsdocshudsoquickstartapi-key-configurationapi-key-configuration): The SDK automatically loads API keys from environment variables or a `.env` file located in your project’s root directory.
+      - [[​](https://docs.hud.so/quickstart#development-installation-for-contributors)Development Installation (for Contributors)](https://docs.hud.so/quickstart#httpsdocshudsoquickstartdevelopment-installation-for-contributorsdevelopment-installation-for-contributors): If you plan to contribute to the SDK or need an editable install:
+
+- [Tasks - hud SDK](https://docs.hud.so/task-creation)
+  - [[​](https://docs.hud.so/task-creation#creating-tasks-%26-tasksets)Creating Tasks & TaskSets](https://docs.hud.so/task-creation#httpsdocshudsotask-creationcreating-tasks-26-tasksetscreating-tasks-tasksets): Tasks define what browser-based agents should accomplish and how success is measured. TaskSets group these tasks for benchmarking and sharing.
+    - [[​](https://docs.hud.so/task-creation#core-task-workflow)Core Task Workflow](https://docs.hud.so/task-creation#httpsdocshudsotask-creationcore-task-workflowcore-task-workflow): 1. **Define Task**: Specify prompt, setup, and evaluation criteria for a specific environment.
+    - [[​](https://docs.hud.so/task-creation#task-structure)Task Structure](https://docs.hud.so/task-creation#httpsdocshudsotask-creationtask-structuretask-structure): While tasks can be designed for various environments, this guide focuses on tasks for the `hud-browser`.
+    - [[​](https://docs.hud.so/task-creation#setup-functions-for-hud-browser)Setup Functions (for `hud-browser`)](https://docs.hud.so/task-creation#httpsdocshudsotask-creationsetup-functions-for-hud-browsersetup-functions-for-hud-browser): | Function | Description |
+    - [[​](https://docs.hud.so/task-creation#evaluate-functions-verifying-task-success)Evaluate Functions (Verifying Task Success)](https://docs.hud.so/task-creation#httpsdocshudsotask-creationevaluate-functions-verifying-task-successevaluate-functions-verifying-task-success): Evaluate functions are called by `env.evaluate()` *after* the agent has completed its interactions (or reached a step limit) to determine if the task objectives were met.
+    - [[​](https://docs.hud.so/task-creation#taskset-creation-%26-management)TaskSet Creation & Management](https://docs.hud.so/task-creation#httpsdocshudsotask-creationtaskset-creation-26-managementtaskset-creation-management): TaskSets are collections of related `Task` objects, useful for running benchmarks, organizing evaluations, or sharing common scenarios.
+      - [[​](https://docs.hud.so/task-creation#creating-a-taskset)Creating a TaskSet](https://docs.hud.so/task-creation#httpsdocshudsotask-creationcreating-a-tasksetcreating-a-taskset)
+      - [[​](https://docs.hud.so/task-creation#uploading-%26-publishing-tasksets)Uploading & Publishing TaskSets](https://docs.hud.so/task-creation#httpsdocshudsotask-creationuploading-26-publishing-tasksetsuploading-publishing-tasksets): Once created, you can upload your TaskSet to the HUD platform to make it available for yourself, your team, or the public.
+      - [[​](https://docs.hud.so/task-creation#publishing-and-sharing)Publishing and Sharing](https://docs.hud.so/task-creation#httpsdocshudsotask-creationpublishing-and-sharingpublishing-and-sharing): Once uploaded, TaskSets can be:
+    - [[​](https://docs.hud.so/task-creation#pre-built-tasksets)Pre-built TaskSets](https://docs.hud.so/task-creation#httpsdocshudsotask-creationpre-built-tasksetspre-built-tasksets): Load and run existing benchmarks:
+    - [[​](https://docs.hud.so/task-creation#mcp-telemetry-with-tasks)MCP Telemetry with Tasks](https://docs.hud.so/task-creation#httpsdocshudsotask-creationmcp-telemetry-with-tasksmcp-telemetry-with-tasks): When using MCP-enabled agents, HUD automatically traces tool calls made during task execution if wrapped in `hud.trace()`:
+    - [[​](https://docs.hud.so/task-creation#best-practices-for-task-design)Best Practices for Task Design](https://docs.hud.so/task-creation#httpsdocshudsotask-creationbest-practices-for-task-designbest-practices-for-task-design): 1. **Clear Prompts**: Ensure agent understands the goal and success criteria.
+    - [[​](https://docs.hud.so/task-creation#advanced-patterns)Advanced Patterns](https://docs.hud.so/task-creation#httpsdocshudsotask-creationadvanced-patternsadvanced-patterns)
+      - [[​](https://docs.hud.so/task-creation#environment-specific-evaluation)Environment-Specific Evaluation](https://docs.hud.so/task-creation#httpsdocshudsotask-creationenvironment-specific-evaluationenvironment-specific-evaluation)
+      - [[​](https://docs.hud.so/task-creation#dynamic-task-generation)Dynamic Task Generation](https://docs.hud.so/task-creation#httpsdocshudsotask-creationdynamic-task-generationdynamic-task-generation)
+    - [[​](https://docs.hud.so/task-creation#related-guides)Related Guides](https://docs.hud.so/task-creation#httpsdocshudsotask-creationrelated-guidesrelated-guides): - **[Browser Environment](https://docs.hud.so/environments/browser)**: Detailed guide on using `hud-browser`, including all its setup and evaluation functions.
+
+## Metadata
+
+- **Domain**: docs.hud.so
+- **Total Pages**: 3
+- **AI Processed Pages**: 1/3
+- **Website ID**: d41d8f44-4e19-4064-b4b7-218490cbcb77
+- **Generated**: 2025-06-09 15:26:11 UTC

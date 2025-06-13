@@ -1,0 +1,11 @@
+# docs.hud.so Documentation
+
+- [Quickstart - hud SDK](https://docs.hud.so/)
+- [Quickstart - hud SDK](https://docs.hud.so/quickstart): This Quickstart guide provides a comprehensive introduction to the HUD SDK, covering essential steps from installation and API key configuration to defining and running your first tasks. It demonstrates various agent interaction patterns, including browser automation and evaluation with TaskSets, and highlights key features like MCP telemetry and common task implementation examples. The guide aims to equip users with the foundational knowledge to start building and evaluating agents using the HUD SDK.
+- [Tasks - hud SDK](https://docs.hud.so/task-creation)
+
+## Metadata
+
+- **Domain**: docs.hud.so
+- **Total Pages**: 3
+- **Website ID**: d41d8f44-4e19-4064-b4b7-218490cbcb77

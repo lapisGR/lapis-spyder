@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     mongodb_host: str = Field(default="localhost", env="MONGODB_HOST")
     mongodb_port: int = Field(default=27017, env="MONGODB_PORT")
     mongodb_url: str = Field(default="mongodb://localhost:27017", env="MONGODB_URL")
+    mongodb_uri: Optional[str] = Field(default=None, env="MONGODB_URI")
     mongodb_db: str = Field(default="lapis_spider", env="MONGODB_DB")
     
     # Redis
@@ -54,6 +55,10 @@ class Settings(BaseSettings):
     gemini_max_retries: int = Field(default=3, env="GEMINI_MAX_RETRIES")
     gemini_timeout: int = Field(default=30, env="GEMINI_TIMEOUT")
     
+    # OpenRouter AI
+    openrouter_api_key: Optional[str] = Field(default=None, env="OPENROUTER_API_KEY")
+    openrouter_model: str = Field(default="google/gemini-2.0-flash-exp", env="OPENROUTER_MODEL")
+    
     # Crawler Settings
     max_pages_per_crawl: int = Field(default=1000, env="MAX_PAGES_PER_CRAWL")
     crawl_timeout_seconds: int = Field(default=3600, env="CRAWL_TIMEOUT_SECONDS")
@@ -78,6 +83,7 @@ class Settings(BaseSettings):
     sentry_dsn: Optional[str] = Field(default=None, env="SENTRY_DSN")
     prometheus_enabled: bool = Field(default=True, env="PROMETHEUS_ENABLED")
     prometheus_port: int = Field(default=9090, env="PROMETHEUS_PORT")
+    flower_port: int = Field(default=5555, env="FLOWER_PORT")
     
     # Email
     smtp_host: Optional[str] = Field(default=None, env="SMTP_HOST")
@@ -93,6 +99,7 @@ class Settings(BaseSettings):
     # Frontend
     frontend_url: str = Field(default="http://localhost:3000", env="FRONTEND_URL")
     frontend_port: int = Field(default=3000, env="FRONTEND_PORT")
+    next_public_api_url: Optional[str] = Field(default=None, env="NEXT_PUBLIC_API_URL")
     
     # Security
     cors_origins: List[str] = Field(
@@ -130,6 +137,9 @@ class Settings(BaseSettings):
     @property
     def mongodb_connection_url(self) -> str:
         """Build MongoDB connection URL from components if URL not provided."""
+        # Prefer mongodb_uri (Atlas), then mongodb_url, then build from components
+        if self.mongodb_uri:
+            return self.mongodb_uri
         if self.mongodb_url != "mongodb://localhost:27017":
             return self.mongodb_url
         return f"mongodb://{self.mongodb_host}:{self.mongodb_port}"

@@ -2,6 +2,7 @@
 
 import asyncio
 from contextlib import asynccontextmanager
+from datetime import datetime
 from typing import Optional
 
 import motor.motor_asyncio
@@ -25,11 +26,12 @@ def get_sync_mongodb():
     
     if sync_client is None:
         sync_client = MongoClient(
-            settings.mongodb_url,
+            settings.mongodb_connection_url,
             maxPoolSize=50,
             minPoolSize=10,
             maxIdleTimeMS=30000,
             serverSelectionTimeoutMS=5000,
+            tlsAllowInvalidCertificates=True,  # For macOS SSL certificate issues
         )
         sync_db = sync_client[settings.mongodb_db]
     
@@ -42,11 +44,12 @@ def get_async_mongodb():
     
     if async_client is None:
         async_client = motor.motor_asyncio.AsyncIOMotorClient(
-            settings.mongodb_url,
+            settings.mongodb_connection_url,
             maxPoolSize=50,
             minPoolSize=10,
             maxIdleTimeMS=30000,
             serverSelectionTimeoutMS=5000,
+            tlsAllowInvalidCertificates=True,  # For macOS SSL certificate issues
         )
         async_db = async_client[settings.mongodb_db]
     
@@ -66,8 +69,9 @@ def get_mongo_collection(collection_name: str, async_mode: bool = False):
 async def check_mongodb_connection():
     """Check if MongoDB is accessible."""
     try:
-        client = get_async_mongodb()
-        await client.admin.command("ping")
+        db = get_async_mongodb()
+        # Get the client from the database and ping
+        await db.client.admin.command("ping")
         return True
     except Exception:
         return False
@@ -76,10 +80,11 @@ async def check_mongodb_connection():
 def check_mongodb_connection_sync():
     """Check if MongoDB is accessible (sync version)."""
     try:
-        client = get_sync_mongodb()
-        client.admin.command("ping")
+        db = get_sync_mongodb()
+        # Get the client from the database and ping
+        db.client.admin.command("ping")
         return True
-    except ConnectionFailure:
+    except Exception:
         return False
 
 
@@ -187,3 +192,63 @@ class MongoDBOperations:
         
         result = await collection.insert_many(documents)
         return [str(id) for id in result.inserted_ids]
+    
+    @staticmethod
+    def insert_markdown_sync(page_id: str, website_id: str, url: str,
+                           raw_markdown: str, structured_markdown: str = None,
+                           metadata: dict = None, prompt_used: str = None):
+        """Insert markdown document (synchronous version)."""
+        collection = get_mongo_collection("markdown_documents", async_mode=False)
+        
+        # Check if document exists
+        existing = collection.find_one({"page_id": page_id})
+        version = 1 if not existing else existing.get("version", 0) + 1
+        
+        document = {
+            "page_id": page_id,
+            "website_id": website_id,
+            "url": url,
+            "raw_markdown": raw_markdown,
+            "structured_markdown": structured_markdown,
+            "metadata": metadata or {},
+            "gemini_prompt_used": prompt_used,
+            "processed_at": datetime.utcnow(),
+            "version": version
+        }
+        
+        if existing:
+            result = collection.replace_one(
+                {"page_id": page_id},
+                document
+            )
+            return str(existing["_id"])
+        else:
+            result = collection.insert_one(document)
+            return str(result.inserted_id)
+    
+    @staticmethod
+    def insert_html_sync(crawl_job_id: str, page_id: str, url: str, 
+                        html: str, headers: dict, status_code: int):
+        """Insert raw HTML document (synchronous version)."""
+        collection = get_mongo_collection("raw_html", async_mode=False)
+        
+        document = {
+            "crawl_job_id": crawl_job_id,
+            "page_id": page_id,
+            "url": url,
+            "raw_html": html,
+            "headers": headers,
+            "status_code": status_code,
+            "crawled_at": datetime.utcnow(),
+            "content_type": headers.get("content-type", "text/html"),
+            "size_bytes": len(html.encode("utf-8"))
+        }
+        
+        result = collection.insert_one(document)
+        return str(result.inserted_id)
+    
+    @staticmethod
+    def get_markdown_sync(page_id: str):
+        """Get markdown document by page ID (synchronous version)."""
+        collection = get_mongo_collection("markdown_documents", async_mode=False)
+        return collection.find_one({"page_id": page_id})
